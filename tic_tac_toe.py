@@ -1,4 +1,5 @@
 import numpy as np
+import random
 
 class ticTacToe:
 
@@ -20,6 +21,22 @@ class ticTacToe:
 
             return False
         
+    def opponent_move(self, token):
+        row = np.random.randint(0,3)
+        col = np.random.randint(0,3)
+
+        if(self.board[row][col] == 0):
+
+            self.board[row][col] = token
+
+            return True
+        
+        else:
+
+            return False
+    def getBoard(self):
+        return self.board
+    
     def checkWinState(self, token):
 
         x = [-1, -1, 0, 1, 1, 1, 0, -1]
@@ -45,11 +62,4 @@ class ticTacToe:
         return False
     
 
-if __name__ == '__main__':
-
-    myBoard = ticTacToe()
-    # myBoard.placeToken('x', 0 , 0)
-    # myBoard.placeToken('x', 1 , 1)
-    # myBoard.placeToken('x', 2 , 2)
-    print(myBoard.checkWinState('x'))
 
