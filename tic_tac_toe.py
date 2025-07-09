@@ -7,6 +7,8 @@ class ticTacToe:
     def __init__(self):
 
         self.board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+        self.curr_col = 0
+        self.curr_row = 0
 
 
     def placeToken(self, token, row, col):
@@ -15,6 +17,9 @@ class ticTacToe:
 
             self.board[row][col] = token
 
+            self.curr_row = row
+            self.curr_col = col
+
             return True
         
         else:
@@ -22,44 +27,79 @@ class ticTacToe:
             return False
         
     def opponent_move(self, token):
-        row = np.random.randint(0,3)
-        col = np.random.randint(0,3)
 
-        if(self.board[row][col] == 0):
+        attempts = 0; 
+        max_attempts = 100
 
-            self.board[row][col] = token
+        while(attempts < max_attempts):
 
-            return True
-        
-        else:
+            row = np.random.randint(0,3)
+            col = np.random.randint(0,3)
 
-            return False
+            if(self.board[row][col] == 0):
+
+                self.board[row][col] = token
+
+                return True, row, col
+            
+            attempts+=1
+
+        return False, row, col
+    
     def getBoard(self):
         return self.board
     
-    def checkWinState(self, token):
+    def checkWinState(self, token, placedRow, placedCol):
+        #just iterate the whole board
+        # Just hceck from row and col of when toek was placed.
+        counter = 0; 
 
-        x = [-1, -1, 0, 1, 1, 1, 0, -1]
-        y = [ 0, 1, 1, 1, 0, -1, -1, -1]
+        #checking sideways
+        for col in range(0,3):
+            if(self.board[placedRow][col] == token):
+                counter+=1
 
-        for i in range (0, 3):
+        if(counter == 3):
+            return True
+        
+        #checking up and down
+        counter = 0; 
 
-            for j in range(0, 3):
+        for row in range(0,3):
+            if(self.board[row][placedCol] == token):
+                counter+=1
 
-                if(self.board[i][j] == token):
+        if(counter == 3):
+            return True
 
-                    for k in range (0, len(x)):
-                        
-                        #checking if in bounds of game
-                        if((i - y[k]) < 3 and (j - x[k]) < 3 and (i - (2 * y[k])) < 3 and (j - (2 * x[k])) < 3):
+        #check left to right digonal
+        counter = 0; 
+        
+        for i in range(0,3):
+            if(self.board[i][i] == token):
+                counter+=1
 
-                            #cecking if next two slots are filled up disgaonally up, down, left or right
-                            if((self.board[i - y[k]][j - x[k]] == token) and
-                            (self.board[i - (2 * y[k])][j - (2 * x[k])] == token)):
-                                
-                                return True
+        if(counter == 3):
+            return True 
+
+        #check right to left digonal
+        counter = 0; 
+        
+        for i in range(0,3):
+            if(self.board[i][2-i] == token):
+                counter+=1
+
+        if(counter == 3):
+            return True 
+
 
         return False
+    
+# if __name__ == '__main__':
+#     game = ticTacToe()
+
+#     print(game.checkWinState('x', 1, 0))
+
     
 
 

@@ -42,24 +42,14 @@ def choose_action(state, epsilon):
         return np.argmax(q_table[state])
 
 def action_to_coordinates(action):
-    row = 0
-    col = 0
-    counter = 0
 
-    for i in range(0, 3):
-        for j in range(0, 3):
+    board_action_Vals = {0 : [0,0], 1 : [0,1], 2 :[0, 2],
+                         3 : [1,0], 4 : [1,1], 5 :[1, 2],
+                         6 : [2,0], 7 : [2,1], 8 :[2, 2]}
+    action_coords = board_action_Vals[action]
 
-            if(counter == action):
-
-                return row, col
-            
-            counter += 1
-            col += 1
-
-        row += 1
-        col = 0
-
-    return row, col
+    #returns row and col
+    return action_coords[0], action_coords[1]
 
 def update_q_vals(state, action, reward, next_state, alpha, gamma):
     if next_state not in q_table:
@@ -97,24 +87,31 @@ def train_agent(episodes, epsilon, alpha, gamma):
             # if placing token was sucesful
             if(game.placeToken(agent_token, row, col)): 
 
-                if(game.checkWinState(agent_token)):
+                if(game.checkWinState(agent_token, row, col)):
 
                     reward = 1
 
                     game_over = True
 
                 else:
-                    game.opponent_move(player_token)
+                    placed, row, col = game.opponent_move(player_token)
 
-                    if(game.checkWinState(player_token)):
+                    if(placed):
+                        if(game.checkWinState(player_token, row, col)):
 
-                        reward = -1
+                            reward = -1
+
+                            game_over = True
+
+                        else:
+
+                            reward = 0
+
+                    #if game is a draw, and cant place anymmore tokens      
+                    else:
+                        reward = 0
 
                         game_over = True
-
-                    else:
-
-                        reward = 0
 
             #state represented as a string of board config
             next_state = get_board_state_str(game.getBoard())
@@ -123,11 +120,13 @@ def train_agent(episodes, epsilon, alpha, gamma):
 
             print("State: ", state)
             print("Action: ", action)
+            print("current_ state: ", next_state)
             print("Reward: ", reward)
-            print("next_state: ", next_state)
 
         print("Game OVER")
         print("Starting new episode....")
+
+    print("Q_table:", q_table)
 
 
 if __name__ == "__main__":
