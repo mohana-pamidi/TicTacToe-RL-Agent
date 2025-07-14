@@ -1,6 +1,7 @@
 import numpy as np
 import tic_tac_toe
 import json
+import sys
 
 q_table = {} #to hold Q-values for each action-state pair
 agent_token = 'x'
@@ -41,16 +42,6 @@ def choose_action(state, epsilon):
         #getting action that allows q function to reach a max
         #gives back index of action with the max
         return np.argmax(q_table[state])
-
-def action_to_coordinates(action):
-
-    board_action_Vals = {0 : [0,0], 1 : [0,1], 2 :[0, 2],
-                         3 : [1,0], 4 : [1,1], 5 :[1, 2],
-                         6 : [2,0], 7 : [2,1], 8 :[2, 2]}
-    action_coords = board_action_Vals[action]
-
-    #returns row and col
-    return action_coords[0], action_coords[1]
 
 def update_q_vals(state, action, reward, next_state, alpha, gamma):
     if next_state not in q_table:
@@ -94,6 +85,9 @@ def train_agent(episodes, epsilon, alpha, gamma):
         init_q_table(get_board_state_str(board))
         game_over = False
         
+        if episode % 100 == 0:
+            sys.stdout.write('.')
+            sys.stdout.flush()
 
         while(not game_over):
             state = get_board_state_str(board)
@@ -102,7 +96,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
             action = choose_action(state, epsilon)
             #print("Chosen action: ", action)
 
-            row, col = action_to_coordinates(action)
+            row, col = game.action_to_coordinates(action)
             #print("Row: ", row, "Col: ", col)
             
             # if placing token was sucesful
@@ -133,6 +127,9 @@ def train_agent(episodes, epsilon, alpha, gamma):
                         reward = 0
 
                         game_over = True
+                        
+            else: #invalid move so negative reward
+                reward = -0.5
 
             #state represented as a string of board config
             next_state = get_board_state_str(game.getBoard())
@@ -152,7 +149,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
 
 
 if __name__ == "__main__":
-    train_agent(1000, 0.3, 0.5, 0.3)
+    train_agent(50000, 0.3, 0.5, 0.9)
             
 
 
