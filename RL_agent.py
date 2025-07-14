@@ -1,5 +1,6 @@
 import numpy as np
 import tic_tac_toe
+import json
 
 q_table = {} #to hold Q-values for each action-state pair
 agent_token = 'x'
@@ -62,10 +63,29 @@ def update_q_vals(state, action, reward, next_state, alpha, gamma):
     #Bellman Equation/temporal difference learning
     q_table[state][action] = q_table[state][action] + alpha * (reward + gamma * max_future_q - q_table[state][action])
 
+def save_q_table(table):
+    json_q_table = {}
+    try:
+        for state, values in q_table.items():
+            json_q_table[state] = values.tolist()
+
+        with open("q_table.json", 'w') as file:
+            json.dump(json_q_table, file, indent=2)
+
+        print("Q table sucessfully saved to \"q_table.json\"")
+
+    except Exception:
+        print(f"Error saving Q-table as JSON: {Exception}")
+
+
+
+
 def train_agent(episodes, epsilon, alpha, gamma):
    
     np.random.seed(42)
     reward  = 0
+    print("training starting...")
+    
     for episode in range (0, episodes):
 
         #new env for each board
@@ -73,6 +93,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
         board = game.getBoard()
         init_q_table(get_board_state_str(board))
         game_over = False
+        
 
         while(not game_over):
             state = get_board_state_str(board)
@@ -82,7 +103,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
             #print("Chosen action: ", action)
 
             row, col = action_to_coordinates(action)
-            print("Row: ", row, "Col: ", col)
+            #print("Row: ", row, "Col: ", col)
             
             # if placing token was sucesful
             if(game.placeToken(agent_token, row, col)): 
@@ -118,15 +139,16 @@ def train_agent(episodes, epsilon, alpha, gamma):
 
             update_q_vals(state, action, reward, next_state, alpha, gamma)
 
-            print("State: ", state)
-            print("Action: ", action)
-            print("current_ state: ", next_state)
-            print("Reward: ", reward)
+            # print("State: ", state)
+            # print("Action: ", action)
+            # print("current_ state: ", next_state)
+            # print("Reward: ", reward)
 
-        print("Game OVER")
-        print("Starting new episode....")
+        # print("Game OVER")
+        # print("Starting new episode....")
 
-    print("Q_table:", q_table)
+    print("Finished Traning, saving q-table")
+    save_q_table(q_table)
 
 
 if __name__ == "__main__":

@@ -25,7 +25,9 @@ class ticTacToe:
         else:
 
             return False
-        
+
+    #this function only used for traning agent and will not be used for the actual game loop. 
+    
     def opponent_move(self, token):
 
         attempts = 0; 
@@ -48,6 +50,7 @@ class ticTacToe:
     
     def getBoard(self):
         return self.board
+
     
     def checkWinState(self, token, placedRow, placedCol):
         #just iterate the whole board
@@ -95,6 +98,8 @@ class ticTacToe:
 
         return False
     
+
+
 # if __name__ == '__main__':
 #     game = ticTacToe()
 
