@@ -5,9 +5,8 @@ import ast
 
 class ticTacToe:
 
-
     def __init__(self):
-
+        
         self.board = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.curr_col = 0
         self.curr_row = 0
@@ -136,6 +135,7 @@ class ticTacToe:
 
 
         return False
+        
     
 
 
