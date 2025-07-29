@@ -13,7 +13,7 @@ class Interface():
 
     def game_state_to_dict(self):
 
-        #gives abck board state in dict so JSON is compatable. 
+        #gives back board state in dict so JSON is compatable. 
 
         return {
             "board" : self.game.getBoard(),

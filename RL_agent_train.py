@@ -2,6 +2,7 @@ import numpy as np
 import tic_tac_toe
 import json
 import sys
+import matplotlib.pyplot as plt
 
 q_table = {} #to hold Q-values for each action-state pair
 agent_token = 'x'
@@ -76,6 +77,11 @@ def train_agent(episodes, epsilon, alpha, gamma):
     np.random.seed(42)
     reward  = 0
     print("training starting...")
+    rewards = []
+    episodesNum = []
+
+    # plt.plot(episodesNum, rewards, '-ro', label='Rewards vs Time', linewidth=2)
+    # plt.show(block=True)
     
     for episode in range (0, episodes):
 
@@ -84,6 +90,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
         board = game.getBoard()
         init_q_table(get_board_state_str(board))
         game_over = False
+        episode_reward = 0 
         
         if episode % 100 == 0:
             sys.stdout.write('.')
@@ -133,7 +140,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
 
             #state represented as a string of board config
             next_state = get_board_state_str(game.getBoard())
-
+            episode_reward += reward
             update_q_vals(state, action, reward, next_state, alpha, gamma)
 
             # print("State: ", state)
@@ -141,14 +148,28 @@ def train_agent(episodes, epsilon, alpha, gamma):
             # print("current_ state: ", next_state)
             # print("Reward: ", reward)
 
+
+        rewards.append(episode_reward)
+        episodesNum.append(episode)
+
         # print("Game OVER")
         # print("Starting new episode....")
 
     print("Finished Traning, saving q-table")
+    
     save_q_table(q_table)
+
+    plt.plot(episodesNum, rewards, label='Rewards vs Episode')
+
+    plt.legend()
+
+    print(plt.savefig("trainingPlot.png"))
+    
+    plt.show(block=True)
 
 
 if __name__ == "__main__":
+
     train_agent(50000, 0.3, 0.5, 0.9)
             
 
