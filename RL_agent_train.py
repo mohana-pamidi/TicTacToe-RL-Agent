@@ -170,7 +170,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
 
 if __name__ == "__main__":
 
-    train_agent(50000, 0.3, 0.5, 0.9)
+    train_agent(50000, 0.02, 0.5, 0.9)
             
 
 

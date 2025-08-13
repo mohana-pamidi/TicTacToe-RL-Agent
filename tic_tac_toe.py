@@ -65,13 +65,33 @@ class ticTacToe:
     
     def get_RL_bot_move(self, board_str):
 
+        #cheks for open slots
+        valid_actions = []
+        for i in range(9):
+            row, col = self.action_to_coordinates(i)
+            if self.board[row][col] == 0: 
+                valid_actions.append(i)
+
         try: 
-            action = np.argmax(self.q_table[board_str])
+            #get array of q_values for tha baord config so that you can modify and amke sure that the bot doesnt pick slots already taken up
+            q_values = np.array(self.q_table[board_str]).copy()
+                
+            if not valid_actions:
+                print("No valid moves available!")
+                return None, None
+            
+            #if the action is invalid/alr a token in that slot, then make the q_val -infintiy
+            for i in range(9):
+                if i not in valid_actions:
+                    q_values[i] = float('-inf')
+
+            #get action with max q from the filtered q
+            action = np.argmax(q_values)
 
         except:
 
             print("unforseen...Taking random action")
-            action = np.random.randint(0,3)
+            action = np.random.choice(valid_actions)
 
         
         print("best bot action: " , action)

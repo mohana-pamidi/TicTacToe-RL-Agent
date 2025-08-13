@@ -32,18 +32,8 @@ class TicTacToeAgent:
         return True
     
     def get_board_state_str(self, board):
-        """Convert board to string representation, matching training format"""
-        # Convert spaces to 0 to match training data format
-        converted_board = []
-        for row in board:
-            converted_row = []
-            for cell in row:
-                if cell == ' ':
-                    converted_row.append(0)
-                else:
-                    converted_row.append(cell)
-            converted_board.append(converted_row)
-        return str(converted_board)
+        """Convert board to string representation"""
+        return str(board)
     
     def get_best_action(self, state, game):
         """Get the best action based on Q-values for valid moves only"""
@@ -53,7 +43,7 @@ class TicTacToeAgent:
             board = game.getBoard()
             for i in range(9):
                 row, col = game.action_to_coordinates(i)
-                if board[row][col] == ' ':
+                if board[row][col] == 0:
                     valid_actions.append(i)
             return np.random.choice(valid_actions) if valid_actions else 0
         
@@ -64,20 +54,10 @@ class TicTacToeAgent:
         board = game.getBoard()
         for i in range(9):
             row, col = game.action_to_coordinates(i)
-            if board[row][col] != ' ':  # Invalid move
+            if board[row][col] != 0:  # Invalid move
                 q_values[i] = float('-inf')
         
-        # Make sure we have at least one valid move
-        valid_moves = [i for i in range(9) if q_values[i] != float('-inf')]
-        if not valid_moves:
-            # Emergency fallback - find any empty space
-            for i in range(9):
-                row, col = game.action_to_coordinates(i)
-                if board[row][col] == ' ':
-                    return i
-            return 0  # Should never reach here in a valid game
-        
-        # Return action with highest Q-value among valid moves
+        # Return action with highest Q-value
         return np.argmax(q_values)
 
 class RandomOpponent:
@@ -102,26 +82,26 @@ class OptimalOpponent:
         # First, try to win
         for i in range(3):
             for j in range(3):
-                if board[i][j] == ' ':
+                if board[i][j] == 0:
                     if game.placeToken(self.token, i, j):
                         if game.checkWinState(self.token, i, j):
                             return True, i, j
                         else:
                             # Undo the move
-                            board[i][j] = ' '
+                            board[i][j] = 0
         
         # Second, try to block opponent from winning
         for i in range(3):
             for j in range(3):
-                if board[i][j] == ' ':
+                if board[i][j] == 0:
                     if game.placeToken(self.opponent_token, i, j):
                         if game.checkWinState(self.opponent_token, i, j):
                             # Block this move
-                            board[i][j] = ' '
+                            board[i][j] = 0
                             return game.placeToken(self.token, i, j), i, j
                         else:
                             # Undo the test move
-                            board[i][j] = ' '
+                            board[i][j] = 0
         
         # Otherwise, make a random move
         return game.opponent_move(self.token)
@@ -350,7 +330,7 @@ def interactive_test():
                 
                 # Check if board is full
                 board = game.getBoard()
-                if all(board[i][j] != ' ' for i in range(3) for j in range(3)):
+                if all(board[i][j] != 0 for i in range(3) for j in range(3)):
                     print("It's a draw!")
                     break
                 
