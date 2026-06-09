@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>TicTacToe RL Agent</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #f8fafc;
+    }
+
+    h1 span { color: #60a5fa; }
+
+    #status-bar {
+      font-size: 1.1rem;
+      font-weight: 500;
+      padding: 10px 24px;
+      border-radius: 999px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      min-width: 240px;
+      text-align: center;
+      transition: background 0.3s;
+    }
+
+    #status-bar.win  { background: #166534; border-color: #22c55e; color: #bbf7d0; }
+    #status-bar.lose { background: #7f1d1d; border-color: #ef4444; color: #fecaca; }
+    #status-bar.draw { background: #78350f; border-color: #f59e0b; color: #fde68a; }
+
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      width: 300px;
+    }
+
+    .cell {
+      width: 88px;
+      height: 88px;
+      border-radius: 12px;
+      background: #1e293b;
+      border: 2px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.4rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s, border-color 0.15s;
+      user-select: none;
+    }
+
+    .cell:hover:not(.taken) { background: #2d3f58; border-color: #60a5fa; transform: scale(1.04); }
+    .cell.taken  { cursor: default; }
+    .cell.player { color: #60a5fa; }
+    .cell.ai     { color: #f87171; }
+
+    #controls {
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      padding: 10px 24px;
+      border-radius: 8px;
+      border: none;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    button:hover { opacity: 0.88; transform: scale(1.02); }
+
+    #btn-new  { background: #3b82f6; color: #fff; }
+    #btn-reset { background: #475569; color: #e2e8f0; }
+
+    #legend {
+      display: flex;
+      gap: 20px;
+      font-size: 0.85rem;
+      color: #94a3b8;
+    }
+
+    #legend span { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot.you { background: #60a5fa; }
+    .dot.ai  { background: #f87171; }
+
+    #loading {
+      font-size: 0.85rem;
+      color: #64748b;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>TicTacToe <span>RL Agent</span></h1>
+
+  <div id="status-bar">Press "New Game" to start</div>
+
+  <div id="board">
+    <!-- 9 cells rendered by JS -->
+  </div>
+
+  <div id="loading"></div>
+
+  <div id="controls">
+    <button id="btn-new">New Game</button>
+    <button id="btn-reset">Reset</button>
+  </div>
+
+  <div id="legend">
+    <span><div class="dot you"></div> You (O)</span>
+    <span><div class="dot ai"></div> AI (X)</span>
+  </div>
+
+<script>
+  const boardEl   = document.getElementById('board');
+  const statusEl  = document.getElementById('status-bar');
+  const loadingEl = document.getElementById('loading');
+  let gameActive  = false;
+
+  // ── Render board ──────────────────────────────────────────────
+  function renderBoard(board) {
+    boardEl.innerHTML = '';
+    board.forEach((row, r) => {
+      row.forEach((cell, c) => {
+        const div = document.createElement('div');
+        div.className = 'cell';
+
+        if (cell === 'o') {
+          div.textContent = 'O';
+          div.classList.add('taken', 'player');
+        } else if (cell === 'x') {
+          div.textContent = 'X';
+          div.classList.add('taken', 'ai');
+        } else {
+          div.addEventListener('click', () => makeMove(r, c));
+        }
+
+        boardEl.appendChild(div);
+      });
+    });
+  }
+
+  function setStatus(text, cls) {
+    statusEl.textContent = text;
+    statusEl.className   = cls ? cls : '';
+  }
+
+  function emptyBoard() {
+    renderBoard([[0,0,0],[0,0,0],[0,0,0]]);
+  }
+
+  // ── API helpers ────────────────────────────────────────────────
+  async function api(path, method = 'GET', body = null) {
+    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+    if (body) opts.body = JSON.stringify(body);
+    const res  = await fetch(path, opts);
+    return res.json();
+  }
+
+  function handleGameState(data) {
+    if (!data.success) {
+      setStatus('⚠️ ' + data.error);
+      return;
+    }
+
+    const { board, status } = data.game;
+    renderBoard(board);
+
+    if (status === 'player_wins') {
+      setStatus('🎉 You win!', 'win');
+      gameActive = false;
+    } else if (status === 'AI_wins') {
+      setStatus('🤖 Agent wins!', 'lose');
+      gameActive = false;
+    } else if (status === 'draw') {
+      setStatus("🤝 It's a draw!", 'draw');
+      gameActive = false;
+    } else {
+      setStatus('Your turn — click a cell');
+    }
+  }
+
+  // ── Actions ────────────────────────────────────────────────────
+  async function newGame() {
+    try {
+      setStatus('Starting…');
+      const data = await api('/api/new-game', 'POST');
+      gameActive = true;
+      handleGameState(data);
+    } catch (e) {
+      setStatus('Could not reach server. Is Flask running?');
+    }
+  }
+
+  async function makeMove(row, col) {
+    if (!gameActive) return;
+    loadingEl.textContent = 'AI is thinking…';
+    try {
+      const data = await api('/api/make-move', 'POST', { row, col });
+      handleGameState(data);
+    } catch (e) {
+      setStatus('Move failed.');
+    } finally {
+      loadingEl.textContent = '';
+    }
+  }
+
+  function reset() {
+    gameActive = false;
+    emptyBoard();
+    setStatus('Press "New Game" to start');
+    statusEl.className = '';
+  }
+
+  // ── Init ───────────────────────────────────────────────────────
+  document.getElementById('btn-new').addEventListener('click', newGame);
+  document.getElementById('btn-reset').addEventListener('click', reset);
+
+  emptyBoard();
+</script>
+</body>
+</html>
