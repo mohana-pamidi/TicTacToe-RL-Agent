@@ -38,7 +38,7 @@ def choose_action(state, epsilon):
 
         return np.random.randint(0,9)
     
-    elif(n > epsilon):
+    else:
 
         #getting action that allows q function to reach a max
         #gives back index of action with the max
@@ -72,9 +72,10 @@ def save_q_table(table):
 
 
 
-def train_agent(episodes, epsilon, alpha, gamma):
+def train_agent(episodes, epsilon_start, epsilon_min, epsilon_decay, alpha, gamma):
    
     np.random.seed(42)
+    epsilon = epsilon_start
     reward  = 0
     print("training starting...")
     rewards = []
@@ -93,7 +94,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
         episode_reward = 0 
         
         if episode % 100 == 0:
-            sys.stdout.write('.')
+            sys.stdout.write(f'\nEpisode {episode} | epsilon={epsilon:.4f}')
             sys.stdout.flush()
 
         while(not game_over):
@@ -143,6 +144,8 @@ def train_agent(episodes, epsilon, alpha, gamma):
             episode_reward += reward
             update_q_vals(state, action, reward, next_state, alpha, gamma)
 
+            epsilon = max(epsilon_min, epsilon * epsilon_decay)
+
             # print("State: ", state)
             # print("Action: ", action)
             # print("current_ state: ", next_state)
@@ -170,7 +173,7 @@ def train_agent(episodes, epsilon, alpha, gamma):
 
 if __name__ == "__main__":
 
-    train_agent(50000, 0.02, 0.5, 0.9)
+    train_agent(50000, 1.0, 0.02,0.99995, 0.5, 0.9)
             
 
 
